@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Multiplication Stars</title>
+    <title>Grandson's Math Adventure</title>
     <style>
-        /* CSS: This makes it look like a game */
         body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            font-family: 'Segoe UI', sans-serif; 
             text-align: center; 
             background-color: #e0f7fa; 
             margin: 0; 
@@ -15,95 +14,102 @@
             touch-action: manipulation; 
         }
 
-        #score-bar { font-size: 24px; font-weight: bold; color: #00796b; margin-bottom: 10px; }
-        
-        #question { font-size: 60px; margin: 20px 0; color: #333; }
+        /* Screens */
+        .screen { display: none; }
+        .active { display: block; }
 
-        /* The "Dots" Container */
-        #visual-box {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-            margin: 20px auto;
-            min-height: 180px;
-            background: white;
-            padding: 15px;
-            border-radius: 15px;
-            width: fit-content;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
-        }
-
-        .row { display: flex; gap: 8px; }
-
-        .dot {
-            width: 25px;
-            height: 25px;
-            background-color: #ff5722;
-            border-radius: 50%;
-            box-shadow: 0 3px #bf360c;
-            animation: popIn 0.3s ease-out;
-        }
-
-        @keyframes popIn {
-            0% { transform: scale(0); }
-            80% { transform: scale(1.2); }
-            100% { transform: scale(1); }
-        }
-
-        /* Buttons for the phone */
-        .button-grid {
+        /* Menu Grid */
+        .menu-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(3, 1fr);
             gap: 15px;
             max-width: 400px;
-            margin: 0 auto;
+            margin: 20px auto;
         }
 
-        button {
-            padding: 25px;
-            font-size: 28px;
-            font-weight: bold;
-            border-radius: 15px;
-            border: none;
-            background: #4caf50;
+        .level-btn {
+            padding: 20px;
+            font-size: 24px;
+            background: #0288d1;
             color: white;
-            box-shadow: 0 6px #2e7d32;
-            cursor: pointer;
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px #01579b;
         }
 
-        button:active {
-            transform: translateY(4px);
-            box-shadow: 0 2px #2e7d32;
+        /* Game Elements */
+        #score-bar { font-size: 22px; margin-bottom: 10px; color: #00796b; font-weight: bold; }
+        #visual-box {
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
+            margin: 20px auto; min-height: 180px; background: white; padding: 15px;
+            border-radius: 15px; width: fit-content; box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
         }
+        .row { display: flex; gap: 8px; }
+        .dot { width: 20px; height: 20px; background-color: #ff5722; border-radius: 50%; box-shadow: 0 3px #bf360c; }
+        
+        #question { font-size: 50px; margin: 15px 0; }
+        .button-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; max-width: 400px; margin: 0 auto; }
+        
+        .answer-btn { padding: 25px; font-size: 28px; border-radius: 15px; border: none; background: #4caf50; color: white; box-shadow: 0 6px #2e7d32; }
+        .back-btn { margin-top: 30px; background: #9e9e9e; font-size: 16px; padding: 10px; box-shadow: 0 4px #616161; }
     </style>
 </head>
 <body>
 
-    <div id="score-bar">⭐ Stars: <span id="star-count">0</span></div>
-    
-    <div id="visual-box">
-        </div>
+    <div id="menu-screen" class="screen active">
+        <h1>Pick a Table!</h1>
+        <div class="menu-grid" id="menu-grid"></div>
+    </div>
 
-    <div id="question">Loading...</div>
-
-    <div class="button-grid" id="options">
-        </div>
+    <div id="game-screen" class="screen">
+        <div id="score-bar">⭐ Stars: <span id="star-count">0</span></div>
+        <div id="visual-box"></div>
+        <div id="question"></div>
+        <div class="button-grid" id="options"></div>
+        <button class="answer-btn back-btn" onclick="showMenu()">⬅ Back to Menu</button>
+    </div>
 
     <script>
-        // JAVASCRIPT: The logic
         let score = 0;
+        let currentTable = 1;
         let currentAnswer = 0;
 
-        function nextQuestion() {
-            // Pick two numbers (keeping it to 1-5 for the dots to fit well on a phone)
-            const num1 = Math.floor(Math.random() * 5) + 1;
-            const num2 = Math.floor(Math.random() * 10) + 1;
-            currentAnswer = num1 * num2;
+        // Create the 1-12 Menu Buttons
+        const menuGrid = document.getElementById('menu-grid');
+        for (let i = 1; i <= 12; i++) {
+            const btn = document.createElement('button');
+            btn.className = 'level-btn';
+            btn.innerText = i;
+            btn.onclick = () => startLevel(i);
+            menuGrid.appendChild(btn);
+        }
 
-            document.getElementById('question').innerText = `${num1} × ${num2}`;
+        function startLevel(table) {
+            currentTable = table;
+            document.getElementById('menu-screen').classList.remove('active');
+            document.getElementById('game-screen').classList.add('active');
+            nextQuestion();
+        }
+
+        function showMenu() {
+            document.getElementById('game-screen').classList.remove('active');
+            document.getElementById('menu-screen').classList.add('active');
+        }
+
+        function nextQuestion() {
+            // Pick a random multiplier from 1 to 12
+            const randomMultiplier = Math.floor(Math.random() * 12) + 1;
+            currentAnswer = currentTable * randomMultiplier;
+
+            document.getElementById('question').innerText = `${currentTable} × ${randomMultiplier}`;
             
-            drawDots(num1, num2);
+            // Only draw dots for smaller numbers so they fit on the screen
+            if (currentTable <= 6 && randomMultiplier <= 10) {
+                drawDots(currentTable, randomMultiplier);
+            } else {
+                document.getElementById('visual-box').innerHTML = "<p>Big numbers! Use your brain power!</p>";
+            }
+            
             generateButtons(currentAnswer);
         }
 
@@ -116,7 +122,7 @@
                 for (let c = 0; c < cols; c++) {
                     const dot = document.createElement('div');
                     dot.className = 'dot';
-                    dot.style.backgroundColor = `hsl(${r * 60 + 180}, 70%, 50%)`;
+                    dot.style.backgroundColor = `hsl(${r * 30 + 180}, 70%, 50%)`;
                     rowDiv.appendChild(dot);
                 }
                 box.appendChild(rowDiv);
@@ -126,15 +132,14 @@
         function generateButtons(correct) {
             const container = document.getElementById('options');
             container.innerHTML = '';
-            
-            // Create a mix of the right answer and 3 wrong ones
-            let choices = [correct, correct + 1, correct - 1, correct + 2];
-            // Shuffle them so the right answer isn't always first
+            let choices = [correct, correct + currentTable, correct - currentTable, correct + 1];
+            choices = [...new Set(choices)]; // Remove duplicates
             choices.sort(() => Math.random() - 0.5);
 
             choices.forEach(val => {
-                if(val < 1) val = correct + 5; // Prevent negative numbers
+                if(val < 1) val = correct + 2;
                 const btn = document.createElement('button');
+                btn.className = 'answer-btn';
                 btn.innerText = val;
                 btn.onclick = () => checkAnswer(val);
                 container.appendChild(btn);
@@ -147,12 +152,9 @@
                 document.getElementById('star-count').innerText = score;
                 nextQuestion();
             } else {
-                alert("Try counting the dots again!");
+                alert("Try again! You can do it!");
             }
         }
-
-        // Start the game!
-        nextQuestion();
     </script>
 </body>
 </html>
