@@ -1,38 +1,170 @@
-function generateButtons(correct) {
-    const container = document.getElementById('options');
-    container.innerHTML = '';
-    
-    // 1. Create the list with the correct answer already inside
-    let choices = [correct];
-    
-    // 2. Add three wrong answers based on the table we are in
-    // We use a Set to make sure we don't accidentally have the same number twice
-    while (choices.length < 4) {
-        let wrong;
-        const randomOffset = Math.floor(Math.random() * 5) - 2; // -2, -1, 1, 2
-        
-        if (randomOffset === 0) {
-            wrong = correct + currentTable; 
-        } else {
-            wrong = correct + (randomOffset * currentTable);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Grandson's Math Adventure</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            text-align: center; 
+            background-color: #e0f7fa; 
+            margin: 0; 
+            padding: 10px;
+            touch-action: manipulation; 
+        }
+        .screen { display: none; }
+        .active { display: block; }
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            max-width: 400px;
+            margin: 10px auto;
+        }
+        .level-btn {
+            padding: 15px;
+            font-size: 20px;
+            background: #0288d1;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px #01579b;
+        }
+        #visual-box {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 10px auto;
+            height: 250px;
+            background: white;
+            padding: 10px;
+            border-radius: 15px;
+            width: 90%;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .row { display: flex; justify-content: center; width: 100%; }
+        .dot { display: flex; justify-content: center; align-items: center; line-height: 1; }
+        #question { font-size: 40px; margin: 10px 0; font-weight: bold; }
+        .button-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-width: 400px; margin: 0 auto; }
+        .answer-btn { padding: 20px; font-size: 24px; border-radius: 12px; border: none; background: #4caf50; color: white; box-shadow: 0 5px #2e7d32; cursor: pointer; }
+        .back-btn { margin-top: 15px; background: #9e9e9e; font-size: 14px; padding: 10px; box-shadow: 0 3px #616161; width: 100%; }
+    </style>
+</head>
+<body>
+
+    <div id="menu-screen" class="screen active">
+        <h1>Pick a Table!</h1>
+        <div class="menu-grid" id="menu-grid"></div>
+    </div>
+
+    <div id="game-screen" class="screen">
+        <div style="font-size: 20px;">⭐ Stars Won: <span id="star-count">0</span></div>
+        <div id="visual-box"></div>
+        <div id="question"></div>
+        <div class="button-grid" id="options"></div>
+        <button class="answer-btn back-btn" onclick="showMenu()">⬅ Back to Menu</button>
+    </div>
+
+    <script>
+        let score = 0;
+        let currentTable = 1;
+        let currentAnswer = 0;
+
+        // Build the Menu
+        const menuGrid = document.getElementById('menu-grid');
+        for (let i = 1; i <= 12; i++) {
+            const btn = document.createElement('button');
+            btn.className = 'level-btn';
+            btn.innerText = i;
+            btn.onclick = () => startLevel(i);
+            menuGrid.appendChild(btn);
         }
 
-        // Make sure the wrong answer is positive and not already in our list
-        if (wrong > 0 && !choices.includes(wrong)) {
-            choices.push(wrong);
+        function startLevel(table) {
+            currentTable = table;
+            document.getElementById('menu-screen').classList.remove('active');
+            document.getElementById('game-screen').classList.add('active');
+            nextQuestion();
         }
-    }
 
-    // 3. Shuffle the 4 choices so the correct one isn't always first
-    choices.sort(() => Math.random() - 0.5);
+        function showMenu() {
+            document.getElementById('game-screen').classList.remove('active');
+            document.getElementById('menu-screen').classList.add('active');
+        }
 
-    // 4. Create the buttons
-    choices.forEach(val => {
-        const btn = document.createElement('button');
-        btn.className = 'answer-btn';
-        btn.innerText = val;
-        btn.onclick = () => checkAnswer(val);
-        container.appendChild(btn);
-    });
-}
-}
+        function nextQuestion() {
+            const randomMultiplier = Math.floor(Math.random() * 12) + 1;
+            currentAnswer = currentTable * randomMultiplier;
+            document.getElementById('question').innerText = `${currentTable} × ${randomMultiplier}`;
+            drawStars(currentTable, randomMultiplier);
+            generateButtons(currentAnswer);
+        }
+
+        function drawStars(rows, cols) {
+            const box = document.getElementById('visual-box');
+            box.innerHTML = ''; 
+            const starSize = Math.min(220 / rows, 300 / cols, 35); 
+            for (let r = 0; r < rows; r++) {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'row';
+                rowDiv.style.height = `${starSize}px`;
+                for (let c = 0; c < cols; c++) {
+                    const dot = document.createElement('div');
+                    dot.className = 'dot';
+                    dot.style.width = `${starSize}px`;
+                    dot.style.height = `${starSize}px`;
+                    dot.style.fontSize = `${starSize * 0.8}px`;
+                    dot.innerText = '⭐';
+                    rowDiv.appendChild(dot);
+                }
+                box.appendChild(rowDiv);
+            }
+        }
+
+        // FIXED: The Bulletproof Button Logic
+        function generateButtons(correct) {
+            const container = document.getElementById('options');
+            container.innerHTML = '';
+            let choices = [correct];
+            
+            while (choices.length < 4) {
+                let wrong;
+                const randomOffset = Math.floor(Math.random() * 7) - 3; // range -3 to 3
+                
+                if (randomOffset === 0) {
+                    wrong = correct + currentTable; 
+                } else {
+                    wrong = correct + (randomOffset * currentTable);
+                }
+
+                if (wrong > 0 && !choices.includes(wrong)) {
+                    choices.push(wrong);
+                }
+            }
+
+            choices.sort(() => Math.random() - 0.5);
+
+            choices.forEach(val => {
+                const btn = document.createElement('button');
+                btn.className = 'answer-btn';
+                btn.innerText = val;
+                btn.onclick = () => checkAnswer(val);
+                container.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(picked) {
+            if (picked === currentAnswer) {
+                score++;
+                document.getElementById('star-count').innerText = score;
+                nextQuestion();
+            } else {
+                alert("Not quite! Try counting the yellow stars.");
+            }
+        }
+    </script>
+</body>
+</html>
