@@ -2,34 +2,31 @@ function generateButtons(correct) {
     const container = document.getElementById('options');
     container.innerHTML = '';
     
-    // 1. Start with the correct answer in the list
+    // 1. Create the list with the correct answer already inside
     let choices = [correct];
     
-    // 2. Create a pool of "believable" wrong answers
-    let distractors = [
-        correct + currentTable, // One step up (e.g., if 11x8, gives 99)
-        correct - currentTable, // One step down (e.g., 77)
-        correct + 1,            // Common mistake (89)
-        correct - 1             // Common mistake (87)
-    ];
-
-    // 3. Shuffle the distractors and pick 3 of them
-    distractors.sort(() => Math.random() - 0.5);
-    
-    for (let i = 0; i < 3; i++) {
-        let val = distractors[i];
-        if (val > 0 && val !== correct) {
-            choices.push(val);
+    // 2. Add three wrong answers based on the table we are in
+    // We use a Set to make sure we don't accidentally have the same number twice
+    while (choices.length < 4) {
+        let wrong;
+        const randomOffset = Math.floor(Math.random() * 5) - 2; // -2, -1, 1, 2
+        
+        if (randomOffset === 0) {
+            wrong = correct + currentTable; 
         } else {
-            // Backup if the math goes weird (like 1x1)
-            choices.push(correct + i + 5);
+            wrong = correct + (randomOffset * currentTable);
+        }
+
+        // Make sure the wrong answer is positive and not already in our list
+        if (wrong > 0 && !choices.includes(wrong)) {
+            choices.push(wrong);
         }
     }
 
-    // 4. Shuffle the final 4 so the correct one isn't always first
+    // 3. Shuffle the 4 choices so the correct one isn't always first
     choices.sort(() => Math.random() - 0.5);
 
-    // 5. Create the buttons
+    // 4. Create the buttons
     choices.forEach(val => {
         const btn = document.createElement('button');
         btn.className = 'answer-btn';
@@ -37,4 +34,5 @@ function generateButtons(correct) {
         btn.onclick = () => checkAnswer(val);
         container.appendChild(btn);
     });
+}
 }
