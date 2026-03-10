@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Multiplication Stars</title>
+    <style>
+        /* CSS: This makes it look like a game */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            text-align: center; 
+            background-color: #e0f7fa; 
+            margin: 0; 
+            padding: 20px;
+            touch-action: manipulation; 
+        }
+
+        #score-bar { font-size: 24px; font-weight: bold; color: #00796b; margin-bottom: 10px; }
+        
+        #question { font-size: 60px; margin: 20px 0; color: #333; }
+
+        /* The "Dots" Container */
+        #visual-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            margin: 20px auto;
+            min-height: 180px;
+            background: white;
+            padding: 15px;
+            border-radius: 15px;
+            width: fit-content;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .row { display: flex; gap: 8px; }
+
+        .dot {
+            width: 25px;
+            height: 25px;
+            background-color: #ff5722;
+            border-radius: 50%;
+            box-shadow: 0 3px #bf360c;
+            animation: popIn 0.3s ease-out;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); }
+            80% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        /* Buttons for the phone */
+        .button-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        button {
+            padding: 25px;
+            font-size: 28px;
+            font-weight: bold;
+            border-radius: 15px;
+            border: none;
+            background: #4caf50;
+            color: white;
+            box-shadow: 0 6px #2e7d32;
+            cursor: pointer;
+        }
+
+        button:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px #2e7d32;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="score-bar">⭐ Stars: <span id="star-count">0</span></div>
+    
+    <div id="visual-box">
+        </div>
+
+    <div id="question">Loading...</div>
+
+    <div class="button-grid" id="options">
+        </div>
+
+    <script>
+        // JAVASCRIPT: The logic
+        let score = 0;
+        let currentAnswer = 0;
+
+        function nextQuestion() {
+            // Pick two numbers (keeping it to 1-5 for the dots to fit well on a phone)
+            const num1 = Math.floor(Math.random() * 5) + 1;
+            const num2 = Math.floor(Math.random() * 10) + 1;
+            currentAnswer = num1 * num2;
+
+            document.getElementById('question').innerText = `${num1} × ${num2}`;
+            
+            drawDots(num1, num2);
+            generateButtons(currentAnswer);
+        }
+
+        function drawDots(rows, cols) {
+            const box = document.getElementById('visual-box');
+            box.innerHTML = ''; 
+            for (let r = 0; r < rows; r++) {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'row';
+                for (let c = 0; c < cols; c++) {
+                    const dot = document.createElement('div');
+                    dot.className = 'dot';
+                    dot.style.backgroundColor = `hsl(${r * 60 + 180}, 70%, 50%)`;
+                    rowDiv.appendChild(dot);
+                }
+                box.appendChild(rowDiv);
+            }
+        }
+
+        function generateButtons(correct) {
+            const container = document.getElementById('options');
+            container.innerHTML = '';
+            
+            // Create a mix of the right answer and 3 wrong ones
+            let choices = [correct, correct + 1, correct - 1, correct + 2];
+            // Shuffle them so the right answer isn't always first
+            choices.sort(() => Math.random() - 0.5);
+
+            choices.forEach(val => {
+                if(val < 1) val = correct + 5; // Prevent negative numbers
+                const btn = document.createElement('button');
+                btn.innerText = val;
+                btn.onclick = () => checkAnswer(val);
+                container.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(picked) {
+            if (picked === currentAnswer) {
+                score++;
+                document.getElementById('star-count').innerText = score;
+                nextQuestion();
+            } else {
+                alert("Try counting the dots again!");
+            }
+        }
+
+        // Start the game!
+        nextQuestion();
+    </script>
+</body>
+</html>
