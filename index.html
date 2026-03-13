@@ -10,59 +10,22 @@
     <meta name="theme-color" content="#e0f7fa">
     
     <style>
-        body { 
-            font-family: 'Segoe UI', sans-serif; 
-            text-align: center; 
-            background-color: #e0f7fa; 
-            margin: 0; padding: 10px;
-            touch-action: manipulation; 
-            overflow-x: hidden;
-        }
+        body { font-family: 'Segoe UI', sans-serif; text-align: center; background-color: #e0f7fa; margin: 0; padding: 10px; touch-action: manipulation; overflow-x: hidden; }
         .screen { display: none; }
         .active { display: block; }
-
-        /* Menu Styles */
-        .menu-grid {
-            display: grid; grid-template-columns: repeat(3, 1fr);
-            gap: 10px; max-width: 400px; margin: 10px auto;
-        }
-        .level-btn {
-            padding: 15px; font-size: 20px; background: #0288d1;
-            color: white; border: none; border-radius: 12px;
-            box-shadow: 0 4px #01579b;
-        }
-
-        /* Game Elements */
+        .menu-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 400px; margin: 10px auto; }
+        .level-btn { padding: 15px; font-size: 20px; background: #0288d1; color: white; border: none; border-radius: 12px; box-shadow: 0 4px #01579b; }
         #score-bar { font-size: 22px; font-weight: bold; color: #00796b; margin-bottom: 5px; }
-        
-        #visual-box {
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            margin: 10px auto; height: 230px; background: white; padding: 10px;
-            border-radius: 15px; width: 92%; box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
+        #visual-box { display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 10px auto; height: 230px; background: white; padding: 10px; border-radius: 15px; width: 92%; box-shadow: inset 0 0 10px rgba(0,0,0,0.1); overflow: hidden; }
         .row { display: flex; justify-content: center; width: 100%; }
-        .dot { display: flex; justify-content: center; align-items: center; line-height: 1; transition: transform 0.2s; }
-        
+        .dot { display: flex; justify-content: center; align-items: center; line-height: 1; }
         #question { font-size: 45px; margin: 10px 0; font-weight: bold; color: #333; }
-        
         .button-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-width: 400px; margin: 0 auto; }
         .answer-btn { padding: 20px; font-size: 26px; border-radius: 15px; border: none; background: #4caf50; color: white; box-shadow: 0 6px #2e7d32; cursor: pointer; }
-        
-        /* Sticker Section */
-        #sticker-book {
-            margin-top: 20px; padding: 10px; background: rgba(255,255,255,0.5);
-            border-radius: 10px; min-height: 50px; font-size: 30px;
-        }
-        
+        #sticker-book { margin-top: 20px; padding: 10px; background: rgba(255,255,255,0.5); border-radius: 10px; min-height: 50px; font-size: 30px; }
         .back-btn { margin-top: 15px; background: #9e9e9e; font-size: 14px; padding: 10px; box-shadow: 0 3px #616161; width: 80%; color: white; border: none; border-radius: 10px; }
-
-        /* Animations */
-        @keyframes celebrate {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.2); color: gold; }
-            100% { transform: scale(1); }
-        }
+        #reset-link { margin-top: 30px; display: inline-block; color: #b0bec5; font-size: 12px; text-decoration: none; }
+        @keyframes celebrate { 0% { transform: scale(1); } 50% { transform: scale(1.2); color: gold; } 100% { transform: scale(1); } }
         .animate-score { animation: celebrate 0.5s ease-in-out; }
     </style>
 </head>
@@ -72,6 +35,7 @@
         <h1 style="color: #0277bd;">Choose a Table!</h1>
         <div class="menu-grid" id="menu-grid"></div>
         <div id="total-stars-menu" style="margin-top:20px; font-weight:bold;">Total ⭐: 0</div>
+        <a href="#" id="reset-link" onclick="resetStars()">Reset Progress</a>
     </div>
 
     <div id="game-screen" class="screen">
@@ -84,7 +48,6 @@
     </div>
 
     <script>
-        // Audio Synth (Ding/Buzz)
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playSound(freq, type, duration) {
             const osc = audioCtx.createOscillator();
@@ -99,12 +62,9 @@
             osc.stop(audioCtx.currentTime + duration);
         }
 
-        // Game State
         let totalStars = parseInt(localStorage.getItem('mathStars')) || 0;
         let currentTable = 1;
         let currentAnswer = 0;
-
-        // Rewards list
         const rewards = { 5:"🦖", 10:"🚀", 15:"🐶", 20:"🎨", 25:"🍦", 30:"🦁", 40:"🛸", 50:"👑", 75:"🐉", 100:"🏆" };
 
         function updateDisplay() {
@@ -112,21 +72,23 @@
             document.getElementById('total-stars-menu').innerText = "Total ⭐: " + totalStars;
             const book = document.getElementById('sticker-book');
             book.innerHTML = "";
-            for (let goal in rewards) {
-                if (totalStars >= goal) book.innerHTML += rewards[goal] + " ";
+            for (let goal in rewards) { if (totalStars >= goal) book.innerHTML += rewards[goal] + " "; }
+        }
+
+        function resetStars() {
+            if (confirm("Reset all stars to zero?")) {
+                totalStars = 0;
+                localStorage.setItem('mathStars', 0);
+                updateDisplay();
             }
         }
 
-        // Initialize Menu
         const menuGrid = document.getElementById('menu-grid');
         for (let i = 1; i <= 12; i++) {
             const btn = document.createElement('button');
             btn.className = 'level-btn';
             btn.innerText = i;
-            btn.onclick = () => {
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-                startLevel(i);
-            };
+            btn.onclick = () => { if (audioCtx.state === 'suspended') audioCtx.resume(); startLevel(i); };
             menuGrid.appendChild(btn);
         }
         updateDisplay();
@@ -195,24 +157,22 @@
             if (picked === currentAnswer) {
                 totalStars++;
                 localStorage.setItem('mathStars', totalStars);
-                playSound(523.25, 'sine', 0.2); // C5 note
-                setTimeout(() => playSound(659.25, 'sine', 0.3), 100); // E5 note
-                
+                playSound(523.25, 'sine', 0.2); 
+                setTimeout(() => playSound(659.25, 'sine', 0.3), 100); 
                 const scoreBar = document.getElementById('score-bar');
                 scoreBar.classList.add('animate-score');
                 setTimeout(() => scoreBar.classList.remove('animate-score'), 500);
-                
                 updateDisplay();
                 nextQuestion();
             } else {
-                playSound(150, 'sawtooth', 0.3); // Low buzz
+                playSound(150, 'sawtooth', 0.3); 
                 alert("Try counting the stars again!");
             }
         }
-// This registers the offline helper
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js');
-}
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js');
+        }
     </script>
 </body>
 </html>
