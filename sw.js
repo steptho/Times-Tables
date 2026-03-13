@@ -5,7 +5,6 @@ const assets = [
   './icon.jpg'
 ];
 
-// Install the service worker and cache the files
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(cacheName).then(cache => {
@@ -14,7 +13,6 @@ self.addEventListener('install', e => {
   );
 });
 
-// Fetch the files from cache if offline
 self.addEventListener('fetch', e => {
   e.respondWith(
     caches.match(e.request).then(res => {
